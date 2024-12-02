@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Experiment</title>
+
+  <script src="https://unpkg.com/jspsych"></script>
+  <script src="https://unpkg.com/@world-wide-lab/integration-jspsych"></script>
+  <script src="https://unpkg.com/@world-wide-lab/jspsych-plugin-leaderboard"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response"></script>
+
+  <!-- Add any other jsPsych plugins below -->
+  <!-- You can find them here: https://www.jspsych.org/v7/plugins/list-of-plugins/ -->
+
+  <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css">
+</head>
+<body>
+  <div id="jspsych-target"></div>
+
+  <script>
+    // Any line starting with these two slashes is a comment and not interpreted
+    // as code. You can ignore most of the initial code (unless you find it interesting)
+    // and focus on the timeline part.
+
+    const jsPsych = jsPsychWorldWideLab.initJsPsych(
+      {
+        // Options to pass to the normal initJsPsych()
+      },
+      {
+        // Options for the World-Wide-Lab Integration
+        // URL to where World-Wide-Lab is running
+        url: 'http://localhost:8787/',
+        // The id of the study you're running
+        studyId: "example",
+      },
+    );
+
+    const leaderboardId = "lb-example-press-a";
+
+    // We need some name to show the score under
+    // Here, we just assign a random animal emoji to the user
+    function getRandomAnimalEmoji() {
+      const start = 0x1F400; const end = 0x1F43E;
+      return String.fromCodePoint(Math.floor(Math.random() * (end - start + 1)) + start);
+    }
+    const userName = getRandomAnimalEmoji();
+
+    // This is the jsPsych Timeline
+    const timeline = [
+      // The first trial
+      {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `Your assigned emoji is: ${userName}. Press any key to continue.`,
+      },
+      // The second trial
+      {
+        type: jsPsychHtmlKeyboardResponse,
+        choices: "a",
+        stimulus: "Press the key 'a' as fast as possible to add your score to the leaderboard.",
+        // When the trial is finished we run some code here
+        on_finish: async (data) => {
+          // Add a new score to the leaderboard 🏆️
+          await jsPsychWorldWideLab.session.addScoreToLeaderboard(leaderboardId, {
+            // The score itself
+            score: data.rt,
+            // Optionally, some name(s) to associate with the score
+            publicIndividualName: userName,
+            publicGroupName: "Team jsPsych",
+          });
+        },
+      },
+      // Show the leaderboard
+      {
+        type: jsPsychLeaderboard,
+        wwl_leaderboard_id: leaderboardId,
+        jsPsychWorldWideLab: jsPsychWorldWideLab,
+        wwl_score_options: {
+          limit: 10,
+          // Use ascending order since lower is better
+          sort: "asc",
+          // You can do a lot more here e.g. group scores, filter by date and aggregate scores
+        },
+      },
+    ];
+
+    jsPsych.run(timeline);
+  </script>
+</body>
+</html>
