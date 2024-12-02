@@ -54,8 +54,11 @@ body {
 /* Study frame layouting */
 #study-frame {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 #study-iframe {
+  flex-grow: 1;
   width: 100%;
   height: 100%;
   border: none;
